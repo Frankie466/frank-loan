@@ -4,42 +4,104 @@
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow-lg p-4">
-                <h2 class="text-center text-primary fw-bold mb-4">💼 Loan Status</h2>
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <!-- Header Section -->
+                    <div class="text-center mb-4">
+                        <div class="icon-lg bg-primary bg-opacity-10 text-primary rounded-circle mb-3">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <h2 class="fw-bold text-dark">Loan Qualification Status</h2>
+                        <p class="text-muted">Complete your savings to unlock your loan</p>
+                    </div>
 
-                <div class="alert alert-warning text-center" role="alert">
-                    📌 Your loan application is <strong>Pending</strong>.
-                    <br>
-                    Ensure you have fulfilled the <strong>Savings Requirement</strong> to receive your loan.
-                </div>
+                    <!-- Status Alert -->
+                    <div class="alert alert-warning border-warning bg-light-warning text-center mb-4">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            <div>
+                                <strong>Pending Approval</strong> - You need to complete your savings contribution
+                            </div>
+                        </div>
+                    </div>
 
-                <!-- Loan Details -->
-                <div class="mt-4">
-                    <h5 class="text-secondary">Loan Details</h5>
-                    <ul class="list-group">
-                        <li class="list-group-item">Loan Amount: <strong>Ksh {{ loan.amount }}</strong></li>
-                        <li class="list-group-item">Loan Duration: <strong>{{ loan.duration }}</strong></li>
-                        <li class="list-group-item">Status: <span class="badge bg-warning text-dark">Pending</span></li>
-                    </ul>
-                </div>
+                    <!-- Loan Details Card -->
+                    <div class="card mb-4 border-0 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title text-secondary mb-3">
+                                <i class="bi bi-file-text me-2"></i>Loan Details
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-2"><span class="text-muted">Amount:</span> <strong>Ksh {{ loan.amount|floatformat:2 }}</strong></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2"><span class="text-muted">Term:</span> <strong>{{ loan.duration }} months</strong></p>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge bg-warning bg-opacity-15 text-warning">
+                                    <i class="bi bi-clock-history me-1"></i> Pending Approval
+                                </span>
+                            </div>
+                        </div>
+                    </div>
 
-                <!-- Savings Payment Section -->
-                <div class="mt-4">
-                    <h5 class="text-secondary">Savings Payment</h5>
-                    <p class="text-muted">Click the button below to complete your savings payment:</p>
-                    <div class="text-center">
-                        <a href="{{ payment_link }}" target="_blank" class="btn btn-success">
-                            💳 Pay Now
+                    <!-- Savings Action Section -->
+                    <div class="card mb-4 border-0 bg-light-primary">
+                        <div class="card-body text-center">
+                            <h5 class="text-primary mb-3">
+                                <i class="bi bi-piggy-bank me-2"></i>Savings Requirement
+                            </h5>
+                            <p class="mb-4">To qualify for this loan, you need to contribute to your savings first.</p>
+                            
+                            <!-- Modified Button - Redirects to Savings Page -->
+                            <a href="{% url 'savings_page' %}" class="btn btn-primary px-4 py-2 rounded-pill">
+                                <i class="bi bi-arrow-right-circle me-2"></i>
+                                Go to Savings Page
+                            </a>
+                            
+                            <p class="small text-muted mt-3">
+                                <i class="bi bi-info-circle"></i> Your loan will be approved automatically once savings are complete
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="text-center mt-4">
+                        <a href="#" class="text-decoration-none me-3">
+                            <i class="bi bi-question-circle"></i> Need Help?
+                        </a>
+                        <a href="{% url 'loan_status' %}" class="text-decoration-none">
+                            <i class="bi bi-arrow-repeat"></i> Refresh Status
                         </a>
                     </div>
-                </div>
-
-                <!-- Button to Refresh Status -->
-                <div class="text-center mt-4">
-                    <a href="{% url 'loan_status' %}" class="btn btn-primary">🔄 Refresh Status</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .icon-lg {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+    
+    .rounded-4 {
+        border-radius: 1rem !important;
+    }
+    
+    .bg-light-primary {
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+    
+    .bg-light-warning {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+</style>
 {% endblock %}
