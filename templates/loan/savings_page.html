@@ -1,23 +1,170 @@
 {% extends 'loan/base.html' %}
+
 {% block content %}
 <div class="container py-5">
-    <h2 class="text-center mb-4">Top Up Your Savings</h2>
-    
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-danger">{{ message }}</div>
-      {% endfor %}
+    <!-- Withdrawal Alert Banner (shown when redirected from insufficient funds) -->
+    {% if attempted_withdrawal %}
+    <div class="alert alert-warning border-warning border-start-0 border-end-0 border-5 mb-5">
+        <div class="d-flex align-items-center">
+            <div class="me-3">
+                <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="alert-heading mb-2">Complete Your Withdrawal Request</h5>
+                <div class="row">
+                    <div class="col-md-8">
+                        <p class="mb-2">
+                            You attempted to withdraw <strong class="text-dark">Ksh {{ attempted_withdrawal|floatformat:2 }}</strong>, 
+                            but you only have <strong class="text-dark">Ksh {{ current_savings|floatformat:2 }}</strong> in savings.
+                        </p>
+                        <div class="d-flex align-items-center">
+                            <span class="me-3">You need:</span>
+                            <span class="badge bg-danger fs-5 py-2 px-3">
+                                Ksh {{ required_savings|floatformat:2 }}
+                            </span>
+                            <span class="ms-3">more to complete your withdrawal</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-dark">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endif %}
 
-    <div class="row">
+    <div class="text-center mb-5">
+        <div class="mb-3">
+            <i class="fas fa-piggy-bank text-success" style="font-size: 2.5rem;"></i>
+        </div>
+        <h3 class="mb-2 text-dark fw-bold">
+            {% if attempted_withdrawal %}
+                Select Savings Top-Up to Complete Your Withdrawal
+            {% else %}
+                Top Up Your Savings
+            {% endif %}
+        </h3>
+        <p class="text-muted fs-5">
+            {% if attempted_withdrawal %}
+                Choose a savings option that covers at least Ksh {{ required_savings|floatformat:2 }}
+            {% else %}
+                Increase your savings to qualify for higher loan amounts
+            {% endif %}
+        </p>
+        
+        <!-- Current Savings Display -->
+        <div class="alert alert-info d-inline-flex align-items-center py-2 px-4 rounded-pill">
+            <i class="fas fa-wallet me-2"></i>
+            <span class="fw-semibold">Current Savings:</span>
+            <span class="fw-bold ms-2">Ksh {{ current_savings|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="fas 
+                {% if message.tags == 'success' %}fa-check-circle
+                {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                {% elif message.tags == 'danger' %}fa-times-circle
+                {% else %}fa-info-circle{% endif %}
+                me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row justify-content-center g-4">
         {% for option in savings_options %}
-        <div class="col-md-6 col-lg-3 mb-4">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body text-center">
-                    <h5 class="fw-bold">Ksh {{ option.amount }}</h5>
-                    <p>Get Ksh {{ option.savings }} in savings</p>
-                    <button class="btn btn-outline-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#paymentModal{{ option.id }}">
-                        View Payment Instructions
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 
+                {% if attempted_withdrawal and option.savings >= required_savings %}
+                    border-success border-2
+                {% else %}
+                    border-primary border-2
+                {% endif %}">
+                <div class="card-body d-flex flex-column p-4">
+                    {% if attempted_withdrawal %}
+                    <div class="mb-2">
+                        {% if option.savings >= required_savings %}
+                            <span class="badge bg-success bg-opacity-10 text-success mb-2">
+                                <i class="fas fa-check-circle me-1"></i>Covers Your Shortfall
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning bg-opacity-10 text-warning mb-2">
+                                <i class="fas fa-exclamation-circle me-1"></i>Adds to Savings
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center mb-4">
+                        <div class="display-6 fw-bold text-primary mb-2">
+                            Ksh {{ option.savings|floatformat:2 }}
+                        </div>
+                        <p class="text-muted mb-0">Added to your savings</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">You Pay:</span>
+                            <span class="fw-bold">Ksh {{ option.amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Loan Limit Increases:</span>
+                            <span class="fw-bold text-success">Ksh {{ option.amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">New Total Savings:</span>
+                            <span class="fw-bold">
+                                Ksh {{ current_savings|add:option.savings|floatformat:2 }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {% if attempted_withdrawal %}
+                    <div class="mb-4">
+                        {% if option.savings >= required_savings %}
+                            <div class="alert alert-success py-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <small>This covers your Ksh {{ required_savings|floatformat:2 }} shortfall</small>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning py-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    {% with remaining=required_savings|sub:option.savings %}
+                                    <small>You'll still need Ksh {{ remaining|floatformat:2 }} more</small>
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <button class="btn 
+                        {% if attempted_withdrawal and option.savings >= required_savings %}
+                            btn-success
+                        {% else %}
+                            btn-primary
+                        {% endif %} 
+                        mt-auto align-self-stretch py-2" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#paymentModal{{ option.id }}">
+                        <i class="fas fa-credit-card me-2"></i>
+                        {% if attempted_withdrawal and option.savings >= required_savings %}
+                            Complete Withdrawal
+                        {% else %}
+                            Top Up Now
+                        {% endif %}
                     </button>
                 </div>
             </div>
@@ -25,31 +172,266 @@
 
         <!-- Modal -->
         <div class="modal fade" id="paymentModal{{ option.id }}" tabindex="-1" aria-labelledby="modalLabel{{ option.id }}" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 shadow">
-              <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalLabel{{ option.id }}">Payment Instructions</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <ol>
-                  <li>Go to M-PESA</li>
-                  <li>Select Lipa na M-PESA</li>
-                  <li>Select Till Number</li>
-                  <li>Enter Till Number: <strong>3750234</strong></li>
-                  <li>Enter Amount: <strong>Ksh {{ option.amount }}</strong></li>
-                  <li>Enter M-PESA PIN and confirm</li>
-                </ol>
-                <p class="mt-3 text-success">Once payment is complete, your savings will be updated shortly.</p>
-              </div>
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 rounded-4">
+                    <div class="modal-header bg-primary text-white rounded-4 rounded-bottom-0">
+                        <div>
+                            <h5 class="modal-title fw-bold" id="modalLabel{{ option.id }}">Payment Instructions</h5>
+                            <p class="small mb-0 opacity-75">Follow these steps to add savings</p>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info border-0 bg-light mb-4">
+                            <div class="d-flex">
+                                <i class="fas fa-info-circle text-info me-2 mt-1"></i>
+                                <div>
+                                    <strong>Payment Amount:</strong> Ksh {{ option.amount|floatformat:2 }}<br>
+                                    <strong>Savings Added:</strong> Ksh {{ option.savings|floatformat:2 }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-light rounded p-3 mb-4">
+                            <h6 class="fw-bold mb-3">M-Pesa Payment Instructions</h6>
+                            <ol class="list-group list-group-numbered list-group-flush">
+                                <li class="list-group-item bg-transparent ps-0 pe-0 py-2 border-0">
+                                    Open your <strong>M-Pesa</strong> menu
+                                </li>
+                                <li class="list-group-item bg-transparent ps-0 pe-0 py-2 border-0">
+                                    Select <span class="badge bg-primary bg-opacity-10 text-primary">Lipa na M-Pesa</span>
+                                </li>
+                                <li class="list-group-item bg-transparent ps-0 pe-0 py-2 border-0">
+                                    Choose <span class="badge bg-primary bg-opacity-10 text-primary">Buy Goods and Services</span>
+                                </li>
+                                <li class="list-group-item bg-transparent ps-0 pe-0 py-2 border-0">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span>Enter Till Number:</span>
+                                        <div class="input-group ms-2" style="width: 150px;">
+                                            <input type="text" id="tillInput{{ option.id }}" class="form-control form-control-sm" value="3750234" readonly>
+                                            <button class="btn btn-outline-primary btn-sm" type="button" onclick="copyTill('{{ option.id }}')">
+                                                <i class="fas fa-copy me-1"></i> Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="list-group-item bg-transparent ps-0 pe-0 py-2 border-0">
+                                    Enter Amount: <span class="badge bg-success bg-opacity-10 text-success">Ksh {{ option.amount|floatformat:2 }}</span>
+                                </li>
+                                <li class="list-group-item bg-transparent ps-0 pe-0 py-2 border-0">
+                                    Enter your M-Pesa PIN and confirm
+                                </li>
+                            </ol>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="transactionCode{{ option.id }}" class="form-label fw-semibold">
+                                <i class="fas fa-receipt me-1"></i>Transaction Code
+                            </label>
+                            <input type="text" class="form-control" id="transactionCode{{ option.id }}" 
+                                   placeholder="Enter M-Pesa transaction code">
+                            <small class="text-muted">Found in your M-Pesa confirmation message</small>
+                        </div>
+
+                        <!-- Payment Form -->
+                        <form method="POST" action="{% url 'process_savings' %}" id="paymentForm{{ option.id }}">
+                            {% csrf_token %}
+                            <input type="hidden" name="savings_option" value="{{ option.id }}">
+                            <input type="hidden" name="transaction_code" id="transactionInput{{ option.id }}">
+                            
+                            <div class="text-center mt-4">
+                                <button type="submit" id="confirmBtn{{ option.id }}" 
+                                        class="btn btn-success px-5 py-2 w-100" 
+                                        onclick="processPayment('{{ option.id }}')">
+                                    <span id="btnText{{ option.id }}">Confirm Payment</span>
+                                    <span id="btnSpinner{{ option.id }}" class="spinner-border spinner-border-sm d-none ms-2" role="status"></span>
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <p class="small text-muted">
+                                <i class="fas fa-shield-alt me-1"></i> Payments are processed securely
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
         {% endfor %}
     </div>
 
-    <div class="text-center mt-4">
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary rounded-pill px-4">Back to Dashboard</a>
+    <!-- Info Message for Smallest Option -->
+    {% if attempted_withdrawal %}
+        {% with min_option=savings_options|dictsort:"savings"|first %}
+            {% if min_option.savings > required_savings %}
+            <div class="alert alert-info mt-5">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-lightbulb me-3 fs-4"></i>
+                    <div>
+                        <h5 class="mb-2">No Exact Match Found</h5>
+                        <p class="mb-0">
+                            The smallest savings option is Ksh {{ min_option.savings|floatformat:2 }}. 
+                            If you choose this, you'll have <strong>Ksh {{ min_option.savings|sub:required_savings|floatformat:2 }}</strong> 
+                            extra savings in your account for future withdrawals.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+
+    <div class="text-center mt-5">
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-4 py-2">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+        {% if attempted_withdrawal %}
+        <a href="{% url 'dashboard' %}" class="btn btn-primary px-4 py-2 ms-2" 
+           onclick="return confirm('Are you sure? Your withdrawal request will be cancelled.')">
+            <i class="fas fa-times me-2"></i>Cancel Withdrawal
+        </a>
+        {% endif %}
     </div>
 </div>
+
+<!-- JavaScript -->
+<script>
+    // Copy Till Number Function
+    function copyTill(optionId) {
+        const input = document.getElementById(`tillInput${optionId}`);
+        input.select();
+        input.setSelectionRange(0, 99999);
+        
+        try {
+            navigator.clipboard.writeText(input.value);
+            // Show feedback
+            const copyBtn = input.nextElementSibling;
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            copyBtn.classList.remove('btn-outline-primary');
+            copyBtn.classList.add('btn-success');
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+                copyBtn.classList.remove('btn-success');
+                copyBtn.classList.add('btn-outline-primary');
+            }, 2000);
+        } catch (err) {
+            alert('Unable to copy. Please copy manually: ' + input.value);
+        }
+    }
+    
+    // Process Payment Function
+    function processPayment(optionId) {
+        const transactionCode = document.getElementById(`transactionCode${optionId}`).value.trim();
+        const transactionInput = document.getElementById(`transactionInput${optionId}`);
+        const confirmBtn = document.getElementById(`confirmBtn${optionId}`);
+        const btnText = document.getElementById(`btnText${optionId}`);
+        const spinner = document.getElementById(`btnSpinner${optionId}`);
+        
+        // Validate transaction code
+        if (!transactionCode) {
+            alert('Please enter your M-Pesa transaction code');
+            return false;
+        }
+        
+        if (transactionCode.length < 6) {
+            alert('Please enter a valid transaction code (at least 6 characters)');
+            return false;
+        }
+        
+        // Set transaction code in hidden input
+        transactionInput.value = transactionCode;
+        
+        // Show loading state
+        confirmBtn.disabled = true;
+        btnText.textContent = 'Processing...';
+        spinner.classList.remove('d-none');
+        
+        // Form will submit automatically
+        return true;
+    }
+    
+    // Initialize modals to clear form on close
+    document.addEventListener('DOMContentLoaded', function() {
+        var modals = document.querySelectorAll('.modal');
+        modals.forEach(function(modal) {
+            modal.addEventListener('hidden.bs.modal', function () {
+                const modalId = this.id;
+                const optionId = modalId.replace('paymentModal', '');
+                
+                // Clear transaction code
+                const transactionInput = document.getElementById(`transactionCode${optionId}`);
+                if (transactionInput) {
+                    transactionInput.value = '';
+                }
+                
+                // Reset button state
+                const confirmBtn = document.getElementById(`confirmBtn${optionId}`);
+                const btnText = document.getElementById(`btnText${optionId}`);
+                const spinner = document.getElementById(`btnSpinner${optionId}`);
+                
+                if (confirmBtn) confirmBtn.disabled = false;
+                if (btnText) btnText.textContent = 'Confirm Payment';
+                if (spinner) spinner.classList.add('d-none');
+            });
+        });
+    });
+</script>
+
+<style>
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 16px;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+    
+    .modal-content {
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    
+    .badge {
+        padding: 0.4em 0.8em;
+        font-weight: 500;
+    }
+    
+    .alert {
+        border-radius: 12px;
+    }
+    
+    .list-group-item {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    
+    @media (max-width: 768px) {
+        .display-6 {
+            font-size: 1.75rem;
+        }
+        
+        .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .text-end {
+            text-align: left !important;
+        }
+        
+        .d-flex.align-items-center {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .d-flex.align-items-center span {
+            margin: 0.25rem 0;
+        }
+    }
+</style>
 {% endblock %}

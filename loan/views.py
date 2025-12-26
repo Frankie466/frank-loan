@@ -57,7 +57,17 @@ def dashboard(request):
             phone_number = form.cleaned_data['phone_number']
             
             if amount > customer.savings_balance:
-                messages.error(request, 'You have insufficient savings balance. Please top up to complete your withdrawal.')
+                # Calculate the shortfall
+                shortfall = amount - customer.savings_balance
+                messages.error(
+                    request, 
+                    f'You need Ksh {shortfall:.2f} more to withdraw Ksh {amount:.2f}. '
+                    f'Your current savings: Ksh {customer.savings_balance:.2f}'
+                )
+                # Store the attempted withdrawal amount in session
+                request.session['attempted_withdrawal'] = float(amount)
+                request.session['required_savings'] = float(shortfall)
+                request.session['current_savings'] = float(customer.savings_balance)
                 return redirect('savings_page')   
             else:
                 # Create withdrawal request
@@ -132,6 +142,7 @@ def loan_status(request):
 @login_required
 def repayment(request):
     return render(request, 'loan/repayment.html')
+
 @login_required
 def process_savings(request):
     if request.method == 'POST':
@@ -143,7 +154,24 @@ def process_savings(request):
             customer = request.user.customer
             customer.savings_balance += option.savings
             customer.save()
-            messages.success(request, f'Successfully added Ksh {option.savings} to your savings!')
+            
+            # Clear any attempted withdrawal session data if it exists
+            if 'attempted_withdrawal' in request.session:
+                attempted_amount = request.session.pop('attempted_withdrawal', None)
+                required_savings = request.session.pop('required_savings', None)
+                
+                # Check if the user now has enough for their attempted withdrawal
+                if attempted_amount and customer.savings_balance >= attempted_amount:
+                    messages.success(request, 
+                        f'Successfully added Ksh {option.savings} to your savings! '
+                        f'You now have Ksh {customer.savings_balance:.2f}. '
+                        'You can now complete your withdrawal request.'
+                    )
+                else:
+                    messages.success(request, f'Successfully added Ksh {option.savings} to your savings!')
+            else:
+                messages.success(request, f'Successfully added Ksh {option.savings} to your savings!')
+                
         except SavingsOption.DoesNotExist:
             messages.error(request, 'Invalid savings option selected')
     return redirect('dashboard')
@@ -151,6 +179,19 @@ def process_savings(request):
 @login_required
 def savings_page(request):
     savings_options = SavingsOption.objects.all()
+    
+    # Get the attempted withdrawal info from session
+    attempted_withdrawal = request.session.get('attempted_withdrawal')
+    required_savings = request.session.get('required_savings')
+    current_savings = request.session.get('current_savings')
+    
+    # Get customer's current savings balance (in case it changed)
+    customer = get_object_or_404(Customer, user=request.user)
+    
     return render(request, 'loan/savings.html', {
-        'savings_options': savings_options
+        'savings_options': savings_options,
+        'attempted_withdrawal': attempted_withdrawal,
+        'required_savings': required_savings,
+        'current_savings': current_savings or customer.savings_balance,
+        'customer': customer  # Pass customer object for any other needed info
     })
