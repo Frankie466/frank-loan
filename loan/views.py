@@ -87,7 +87,7 @@ def dashboard(request):
         'customer': customer,
         'savings_options': savings_options,
         'withdrawal_form': form,
-        'payment_link': 'https://checkoutjpv2.jambopay.com/lipa/paybill/16525439'
+        'payment_link': 'https://me.nestlink.co.ke/Maramkopo'
     })
 
 def home(request):

@@ -2,27 +2,6 @@
 
 {% block content %}
 <div class="container py-5">
-    <!-- 
-    <div class="alert alert-info mb-4">
-        <h6>Debug Information:</h6>
-        <p>Number of savings options: {{ savings_options|length }}</p>
-        {% if savings_options %}
-            <p>First option details:</p>
-            <ul>
-                <li>ID: {{ savings_options.0.id }}</li>
-                <li>Amount: {{ savings_options.0.amount }}</li>
-                <li>Savings: {{ savings_options.0.savings }}</li>
-            </ul>
-        {% else %}
-            <p>No savings options available</p>
-        {% endif %}
-        {% if attempted_withdrawal %}
-            <p>Attempted Withdrawal: {{ attempted_withdrawal }}</p>
-            <p>Required Savings: {{ required_savings }}</p>
-        {% endif %}
-    </div>
-     -->
-
     <div class="text-center mb-5">
         <div class="mb-3">
             <i class="bi bi-piggy-bank-fill text-danger" style="font-size: 2.5rem;"></i>
@@ -46,11 +25,11 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex flex-column p-4">
                     <div class="mb-3">
-                        <span class="badge bg-success bg-opacity-10 text-success mb-2">Loan Option {{ forloop.counter }}</span>
-                        <h5 class="card-title text-dark fw-semibold">Loan: Ksh {{ option.amount|floatformat:2 }}</h5>
+                        <span class="badge bg-success bg-opacity-10 text-success mb-2">Option {{ forloop.counter }}</span>
+                        <h5 class="card-title text-dark fw-semibold">Loan Amount: Ksh {{ option.amount|floatformat:2 }}</h5>
                     </div>
                     <div class="mb-4">
-                        <p class="text-muted mb-1">Required Savings:</p>
+                        <p class="text-muted mb-1">Savings Required:</p>
                         <h4 class="text-success fw-bold">Ksh 
                             {% if option.savings %}
                                 {{ option.savings|floatformat:2 }}
@@ -67,7 +46,7 @@
                             <small class="fw-bold">Ksh {{ option.amount|floatformat:2 }}</small>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
-                            <small class="text-muted">You Save:</small>
+                            <small class="text-muted">Savings Added:</small>
                             <small class="fw-bold text-success">Ksh 
                                 {% if option.savings %}
                                     {{ option.savings|floatformat:2 }}
@@ -79,7 +58,7 @@
                     </div>
                     
                     <button class="btn btn-primary mt-3 align-self-stretch" data-bs-toggle="modal" data-bs-target="#modal{{ option.id }}">
-                        <i class="bi bi-arrow-up-circle me-2"></i>Top Up Now
+                        <i class="bi bi-arrow-up-circle me-2"></i>Pay Now
                     </button>
                 </div>
             </div>
@@ -91,8 +70,8 @@
                 <div class="modal-content border-0">
                     <div class="modal-header border-0 pb-0">
                         <div>
-                            <h5 class="modal-title fw-bold" id="modalLabel{{ option.id }}">Complete Your Top-Up</h5>
-                            <p class="text-muted small">Follow these steps to qualify for your loan</p>
+                            <h5 class="modal-title fw-bold" id="modalLabel{{ option.id }}">Complete Your Payment</h5>
+                            <p class="text-muted small">Follow these simple steps to make your payment</p>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -101,66 +80,149 @@
                             <div class="d-flex">
                                 <i class="bi bi-info-circle-fill text-info me-2"></i>
                                 <div>
-                                    <strong>Top Up Amount:</strong> Ksh {{ option.amount|floatformat:2 }}<br>
-                                    <strong>Savings Added:</strong> Ksh 
+                                    <strong>Loan Amount:</strong> Ksh {{ option.amount|floatformat:2 }}<br>
+                                    <strong>Savings Required:</strong> Ksh 
                                     {% if option.savings %}
                                         {{ option.savings|floatformat:2 }}
                                     {% else %}
                                         0.00
                                     {% endif %}
                                     <br>
-                                    <strong>Loan Available:</strong> Ksh {{ option.amount|floatformat:2 }}
+                                    <strong>Total Available:</strong> Ksh {{ option.savings|add:option.amount|floatformat:2 }}
                                 </div>
                             </div>
                         </div>
 
                         <div class="bg-light rounded p-3 mb-4">
-                            <h6 class="fw-bold mb-3">M-Pesa Payment Instructions</h6>
-                            <ol class="list-group list-group-numbered list-group-flush">
-                                <li class="list-group-item bg-transparent ps-0 pe-0 py-1 border-0">Open your M-Pesa menu</li>
-                                <li class="list-group-item bg-transparent ps-0 pe-0 py-1 border-0">Select <span class="badge bg-primary bg-opacity-10 text-primary">Lipa na M-Pesa</span></li>
-                                <li class="list-group-item bg-transparent ps-0 pe-0 py-1 border-0">Choose <span class="badge bg-primary bg-opacity-10 text-primary">Buy Goods and Services</span></li>
-                                <li class="list-group-item bg-transparent ps-0 pe-0 py-1 border-0">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <span>Enter Till Number:</span>
-                                        <div class="input-group ms-2" style="width: 150px;">
-                                            <input type="text" id="tillInput{{ option.id }}" class="form-control form-control-sm" value="3750234" readonly>
-                                            <button class="btn btn-light btn-sm border-secondary" type="button" onclick="copyTill({{ option.id }})" style="min-width: 80px;">
-                                                <i class="bi bi-copy me-1"></i> Copy
-                                            </button>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="list-group-item bg-transparent ps-0 pe-0 py-1 border-0">
-                                    Enter Amount: <span class="badge bg-success bg-opacity-10 text-success">Ksh {{ option.amount|floatformat:2 }}</span>
-                                </li>
-                                <li class="list-group-item bg-transparent ps-0 pe-0 py-1 border-0">Enter your M-Pesa PIN and confirm</li>
-                            </ol>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="transactionCode{{ option.id }}" class="form-label fw-semibold">Transaction Code</label>
-                            <input type="text" class="form-control" id="transactionCode{{ option.id }}" placeholder="Enter M-Pesa transaction code">
-                            <small class="text-muted">Found in your M-Pesa confirmation message</small>
-                        </div>
-
-                        <!-- Payment Form -->
-                        <form method="POST" action="{% url 'process_savings' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="savings_option" value="{{ option.id }}">
+                            <h6 class="fw-bold mb-3">Payment Instructions</h6>
                             
-                            <div class="text-center mt-4">
-                                <button type="submit" id="confirmBtn{{ option.id }}" class="btn btn-success px-5 py-2">
-                                    <span id="btnText{{ option.id }}">Confirm Payment</span>
-                                    <span id="btnSpinner{{ option.id }}" class="spinner-border spinner-border-sm d-none" role="status"></span>
-                                </button>
+                            <div class="alert alert-primary border-0 bg-primary bg-opacity-10 mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="bi bi-phone-fill text-primary fs-5 me-2"></i>
+                                    <div>
+                                        <p class="mb-1 fw-semibold">STK Push Payment Method</p>
+                                        <p class="small mb-0">You'll receive an STK push notification on your phone</p>
+                                    </div>
+                                </div>
                             </div>
-                        </form>
+                            
+                            <div class="step-by-step">
+                                <div class="step d-flex mb-3">
+                                    <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; min-width: 32px;">
+                                        1
+                                    </div>
+                                    <div class="step-content">
+                                        <h6 class="fw-semibold mb-1">Click "Proceed to Payment"</h6>
+                                        <p class="small text-muted mb-0">You'll be redirected to our secure payment page</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="step d-flex mb-3">
+                                    <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; min-width: 32px;">
+                                        2
+                                    </div>
+                                    <div class="step-content">
+                                        <h6 class="fw-semibold mb-1">Enter Your Phone Number</h6>
+                                        <p class="small text-muted mb-0">Input your M-Pesa registered phone number</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="step d-flex mb-3">
+                                    <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; min-width: 32px;">
+                                        3
+                                    </div>
+                                    <div class="step-content">
+                                        <h6 class="fw-semibold mb-1">Enter Amount: <span class="text-success">Ksh {{ option.savings|floatformat:2 }}</span></h6>
+                                        <p class="small text-muted mb-0">Enter the savings amount shown above</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="step d-flex mb-3">
+                                    <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; min-width: 32px;">
+                                        4
+                                    </div>
+                                    <div class="step-content">
+                                        <h6 class="fw-semibold mb-1">Confirm Payment</h6>
+                                        <p class="small text-muted mb-0">You'll receive an STK push notification on your phone</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="step d-flex">
+                                    <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; min-width: 32px;">
+                                        5
+                                    </div>
+                                    <div class="step-content">
+                                        <h6 class="fw-semibold mb-1">Enter Your M-Pesa PIN</h6>
+                                        <p class="small text-muted mb-0">Enter your PIN on the STK push to complete</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-success border-0 bg-success bg-opacity-10 mt-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="bi bi-shield-check text-success fs-5 me-2"></i>
+                                    <div>
+                                        <p class="mb-0 fw-semibold">Secure Payment</p>
+                                        <p class="small mb-0">Your payment is processed securely through encrypted channels</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                        <div class="text-center mt-3">
-                            <p class="small text-muted">
-                                <i class="bi bi-shield-lock me-1"></i> Payments are processed securely
+                        <!-- Payment Information -->
+                        <div class="mb-4">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-3">Package Summary</h6>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted">Loan Amount:</span>
+                                        <span class="fw-bold">Ksh {{ option.amount|floatformat:2 }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted">Savings Required:</span>
+                                        <span class="fw-bold text-success">Ksh {{ option.savings|floatformat:2 }}</span>
+                                    </div>
+                                    <hr class="my-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-semibold">Amount to Withdraw:</span>
+                                        <span class="fw-bold text-primary">Ksh {{ option.savings|add:option.amount|floatformat:2 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Link Only -->
+                        <div class="text-center mt-4">
+                            <!-- Payment Link Button -->
+                            <a href="https://me.nestlink.co.ke/Maramkopo" 
+                               target="_blank" 
+                               class="btn btn-success px-5 py-3 fw-bold"
+                               style="min-width: 250px; font-size: 1.1rem;">
+                                <i class="bi bi-arrow-right-circle me-2"></i>
+                                Proceed to Payment
+                            </a>
+                            
+                            <p class="small text-muted mt-3 mb-2">
+                                <i class="bi bi-lock-fill me-1"></i> You'll be redirected to our secure payment portal
                             </p>
+                            <p class="small text-muted mb-4">
+                                <i class="bi bi-info-circle me-1"></i> After payment, return to your dashboard to continue
+                            </p>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <div class="d-flex justify-content-center align-items-center text-muted small">
+                                <i class="bi bi-shield-check me-2 text-success"></i>
+                                <div class="text-start">
+                                    <p class="mb-1"><strong>Payment Security:</strong></p>
+                                    <ul class="list-unstyled small mb-0">
+                                        <li>• Encrypted transaction</li>
+                                        <li>• No PIN stored on our servers</li>
+                                        <li>• Instant payment confirmation</li>
+                                        <li>• Multiple payment methods available</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -176,52 +238,124 @@
         </div>
         {% endfor %}
     </div>
+    
+    <!-- Information Section -->
+    <div class="row mt-5">
+        <div class="col-md-8 mx-auto">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold mb-3">
+                        <i class="bi bi-info-circle-fill text-primary me-2"></i>
+                        How It Works
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <span class="badge bg-primary rounded-circle p-2">1</span>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold">Choose a Loan Package</h6>
+                                    <p class="small text-muted mb-0">Select a loan amount that suits your needs</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <span class="badge bg-primary rounded-circle p-2">2</span>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold">Pay Savings Amount</h6>
+                                    <p class="small text-muted mb-0">Pay only the savings portion to qualify</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <span class="badge bg-primary rounded-circle p-2">3</span>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold">Receive Loan & Savings</h6>
+                                    <p class="small text-muted mb-0">Get both the loan amount and savings in your account</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <span class="badge bg-primary rounded-circle p-2">4</span>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold">Withdraw Instantly</h6>
+                                    <p class="small text-muted mb-0">Access your funds immediately after payment</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Key Points -->
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="fw-bold mb-2">Key Benefits:</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <span class="small">Pay only the savings amount shown</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <span class="small">Receive full loan amount immediately</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <span class="small">Savings added to your balance</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <span class="small">Instant processing after payment</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- JS: Copy Till and Confirmation Animation -->
+<!-- JS: Simple tracking -->
 <script>
-    function copyTill(id) {
-        const input = document.getElementById(`tillInput${id}`);
-        input.select();
-        input.setSelectionRange(0, 99999);
-        navigator.clipboard.writeText(input.value)
-            .then(() => {
-                // Show feedback
-                const copyBtn = input.nextElementSibling;
-                const originalText = copyBtn.innerHTML;
-                copyBtn.innerHTML = '<i class="bi bi-check me-1"></i>Copied!';
-                copyBtn.classList.remove('btn-light');
-                copyBtn.classList.add('btn-success');
+    // Track payment clicks
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentButtons = document.querySelectorAll('[href="https://me.nestlink.co.ke/Maramkopo"]');
+        paymentButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = this.closest('.modal-content');
+                const loanAmount = modal.querySelector('.alert-info').textContent.match(/Loan Amount: Ksh (\d+[\.,]\d+)/);
+                const savingsAmount = modal.querySelector('.alert-info').textContent.match(/Savings Required: Ksh (\d+[\.,]\d+)/);
                 
-                setTimeout(() => {
-                    copyBtn.innerHTML = originalText;
-                    copyBtn.classList.remove('btn-success');
-                    copyBtn.classList.add('btn-light');
-                }, 2000);
-            })
-            .catch(err => {
-                console.error('Failed to copy: ', err);
-                alert('Please copy manually: ' + input.value);
+                if (loanAmount && savingsAmount) {
+                    console.log('Payment initiated for:', {
+                        loanAmount: loanAmount[1],
+                        savingsAmount: savingsAmount[1]
+                    });
+                    
+                    // Save to localStorage for tracking
+                    localStorage.setItem('last_payment_attempt', JSON.stringify({
+                        loanAmount: loanAmount[1],
+                        savingsAmount: savingsAmount[1],
+                        timestamp: new Date().toISOString()
+                    }));
+                }
             });
-    }
-
-    // Handle form submission
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const btnText = submitBtn.querySelector('#btnText' + this.querySelector('input[name="savings_option"]').value);
-            const spinner = submitBtn.querySelector('#btnSpinner' + this.querySelector('input[name="savings_option"]').value);
-            
-            if (btnText && spinner) {
-                // Show loading state
-                submitBtn.disabled = true;
-                btnText.textContent = 'Processing...';
-                spinner.classList.remove('d-none');
-            }
         });
     });
 
-    // Initialize tooltips
+    // Initialize tooltips if any
     $(function () {
         $('[data-toggle="tooltip"]').tooltip();
     });
@@ -241,6 +375,46 @@
     .modal-content {
         border-radius: 16px;
         overflow: hidden;
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+        border: none;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        box-shadow: 0 4px 6px rgba(25, 135, 84, 0.2);
+    }
+    
+    .btn-success:hover {
+        background: linear-gradient(135deg, #157347 0%, #0f5132 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(25, 135, 84, 0.3);
+    }
+    
+    .step-number {
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    .step-content h6 {
+        color: #333;
+        font-size: 15px;
+    }
+    
+    .alert-primary {
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .alert-success {
+        border-left: 4px solid #198754;
+    }
+    
+    .badge.bg-primary {
+        background-color: #0d6efd !important;
+    }
+    
+    .text-success {
+        color: #198754 !important;
     }
 </style>
 {% endblock %}
